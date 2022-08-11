@@ -63,7 +63,7 @@ void Init() {
 				Custom_LCD_Printf(" SENSOR/1 CALI");
 				break;
 			case 1:
-				Custom_LCD_Printf(" SENSOR/1NORMAL");
+				Custom_LCD_Printf(" SENSOR/1 NORMAL");
 				break;
 			case 2:
 				Custom_LCD_Printf(" SENSOR/1 STATE");
@@ -78,7 +78,7 @@ void Init() {
 				Custom_LCD_Printf(" DRIVE/1 FIRST");
 				break;
 			case 6:
-				Custom_LCD_Printf(" DRIVE/1SECOND");
+				Custom_LCD_Printf(" DRIVE/1 SECOND");
 				break;
 		}
 		//Custom_LCD_Printf("%d", number);
@@ -91,8 +91,31 @@ void Init() {
 		if (number > 6) number = 0;
 		if (number < 0) number = 6;
 		if (sw == CUSTOM_SW_BOTH) {
-				Custom_LCD_Clear();
-				Sensor_RAW();
+			switch(number){
+				case 0:
+
+					break;
+				case 1:
+
+					break;
+				case 2:
+					Custom_LCD_Clear();
+					Sensor_RAW();
+					break;
+				case 3:
+
+					break;
+				case 4:
+
+					break;
+				case 5:
+
+					break;
+				case 6:
+
+					break;
+			}
+
 			}
 	}
 }
