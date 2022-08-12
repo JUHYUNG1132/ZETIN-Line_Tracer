@@ -61,6 +61,9 @@ uint32_t SensorMask = SMP0 | SMP1 | SMP2;
 volatile int32_t sensorRaw[SENSOR_NUM] = { 0 };			// ADC에서 바로 읽은 데이터. 0~4096
 volatile int32_t sensorNormalized[SENSOR_NUM] = { 0 };	// 0~255 범위로 맞춰진 데이터
 volatile uint8_t sensorState;							// 0,1로 나타낸 센서 상태
+volatile int32_t blackMax[SENSOR_NUM] = { 0 };
+volatile int32_t whiteMax[SENSOR_NUM] = { 0 };
+
 
 void Sensor_Start() {
 	LL_ADC_Enable(ADC1);
@@ -177,6 +180,16 @@ void Sensor_TIM5_IRQ() {
 	// 다른 곳에서 쓸 수 있게 전역 배열에 할당
 	sensorRaw[i] = raw;
 
+	if (sensorRaw[i] < blackMax[i]){
+		sensorNormalized[i] = 0;
+	}
+	else if (sensorRaw[i] > whiteMax[i]){
+		sensorNormalized[i] = 255;
+	}
+	else{
+		sensorNormalized[i] = 255 * (sensorRaw[i] - blackMax[i])/(whiteMax[i] - blackMax[i]);
+	}
+
 	// 인덱스 증가
 	i = (i + 1) & 0x07;
 }
@@ -184,8 +197,61 @@ void Sensor_TIM5_IRQ() {
 void Sensor_RAW(){
 	Sensor_Start();
 	while(!(Custom_Switch_Read() == CUSTOM_SW_BOTH)){
-		Custom_LCD_Printf("/0%02x%02x%02x%02x/1%02x%02x%02x%02x", sensorRaw[0], sensorRaw[1], sensorRaw[2], sensorRaw[3], sensorRaw[4],
-												sensorRaw[5], sensorRaw[6], sensorRaw[7]);
+		Custom_LCD_Printf("/0%02x%02x%02x%02x/1%02x%02x%02x%02x",
+				sensorRaw[0], sensorRaw[1], sensorRaw[2], sensorRaw[3],
+				sensorRaw[4], sensorRaw[5], sensorRaw[6], sensorRaw[7]);
 	}
 	Sensor_Stop();
 }
+
+
+void Sensor_CALI(){
+	Sensor_Start();
+	Custom_LCD_Clear();
+	Custom_LCD_Printf("BlackMax");
+	Custom_Delay_ms(500);
+	Custom_LCD_Clear();
+	while(!(Custom_Switch_Read() == CUSTOM_SW_BOTH)){
+			for(int32_t i = 0; i < SENSOR_NUM; i++){
+				if (sensorRaw[i] >= blackMax[i]){
+					blackMax[i] = sensorRaw[i];
+				}
+			}
+			Custom_LCD_Printf("/0%02x%02x%02x%02x/1%02x%02x%02x%02x",
+					blackMax[0], blackMax[1], blackMax[2], blackMax[3],
+					blackMax[4], blackMax[5], blackMax[6], blackMax[7]);
+		}
+	Custom_LCD_Clear();
+	Custom_LCD_Printf("WhiteMax");
+	Custom_Delay_ms(500);
+	Custom_LCD_Clear();
+	while(!(Custom_Switch_Read() == CUSTOM_SW_BOTH)){
+			for(int32_t i = 0; i < SENSOR_NUM; i++){
+				if (sensorRaw[i] >= whiteMax[i]){
+					whiteMax[i] = sensorRaw[i];
+				}
+			}
+			Custom_LCD_Printf("/0%02x%02x%02x%02x/1%02x%02x%02x%02x",
+					whiteMax[0], whiteMax[1], whiteMax[2], whiteMax[3],
+					whiteMax[4], whiteMax[5], whiteMax[6], whiteMax[7]);
+		}
+
+
+	Sensor_Stop();
+}
+
+void Sensor_NORM(){
+	Sensor_Start();
+	Custom_LCD_Clear();
+	Custom_LCD_Printf("Sensor/1Norm");
+	Custom_Delay_ms(500);
+	Custom_LCD_Clear();
+
+	while(!(Custom_Switch_Read() == CUSTOM_SW_BOTH)){
+		Custom_LCD_Printf("/0%02x%02x%02x%02x/1%02x%02x%02x%02x",
+							sensorNormalized[0], sensorNormalized[1], sensorNormalized[2], sensorNormalized[3],
+							sensorNormalized[4], sensorNormalized[5], sensorNormalized[6], sensorNormalized[7]);
+	}
+	Sensor_Stop();
+}
+

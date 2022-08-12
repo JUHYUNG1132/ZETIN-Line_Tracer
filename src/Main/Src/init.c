@@ -91,15 +91,15 @@ void Init() {
 		if (number > 6) number = 0;
 		if (number < 0) number = 6;
 		if (sw == CUSTOM_SW_BOTH) {
+			Custom_LCD_Clear();
 			switch(number){
 				case 0:
-
+					Sensor_CALI();
 					break;
 				case 1:
-
+					Sensor_NORM();
 					break;
 				case 2:
-					Custom_LCD_Clear();
 					Sensor_RAW();
 					break;
 				case 3:
